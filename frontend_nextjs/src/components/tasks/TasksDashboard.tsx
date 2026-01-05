@@ -148,6 +148,7 @@ export function TasksDashboard({ onRequireAuth }: { onRequireAuth: () => void })
       priority: initial.priority ?? null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      version: 1,
       _optimistic: true,
     };
 
@@ -196,7 +197,7 @@ export function TasksDashboard({ onRequireAuth }: { onRequireAuth: () => void })
         accessToken: session.accessToken,
         id,
         task: patch,
-        ifMatch: before.updatedAt ?? undefined,
+        ifMatch: before.version ? `"${before.version}"` : undefined,
       });
 
       setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
@@ -229,7 +230,12 @@ export function TasksDashboard({ onRequireAuth }: { onRequireAuth: () => void })
     setTasks((prev) => prev.filter((t) => t.id !== id));
 
     try {
-      await tasksApi.remove({ accessToken: session.accessToken, id });
+      const current = tasks.find((t) => t.id === id);
+      await tasksApi.remove({
+        accessToken: session.accessToken,
+        id,
+        ifMatch: current?.version ? `"${current.version}"` : `"1"`,
+      });
       toast.info("Task deleted");
     } catch (err) {
       setTasks(before);
