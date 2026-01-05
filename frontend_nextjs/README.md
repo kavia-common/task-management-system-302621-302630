@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# frontend_nextjs (Task Manager UI)
 
-## Getting Started
+This is a static-export compatible Next.js (App Router) SPA for the Task Management app.
 
-First, run the development server:
+## Backend API base URL
+
+The UI calls the backend REST API directly from the browser.
+
+- Configure via environment variable:
+  - `NEXT_PUBLIC_API_BASE`
+- Default (when not set): `http://localhost:3001`
+
+Example:
 
 ```bash
+# from task-management-system-302621-302630/frontend_nextjs
+export NEXT_PUBLIC_API_BASE="http://localhost:3001"
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Session behavior (persistence)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+This frontend is designed to work with `output: "export"` (pure SPA).  
+Because static export cannot rely on Next.js server sessions, the app persists the auth session client-side:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- After login/register, the returned session (access token + user) is stored in `localStorage`
+- On reload/redeploy, the app reads `localStorage` and resumes the session
+- Logout clears local state immediately (best-effort call to backend logout)
 
-## Learn More
+## Notes
 
-To learn more about Next.js, take a look at the following resources:
+- The UI expects backend endpoints:
+  - `POST /api/auth/register`
+  - `POST /api/auth/login`
+  - `POST /api/auth/logout`
+  - `GET /api/tasks`
+  - `POST /api/tasks`
+  - `PUT /api/tasks/:id`
+  - `DELETE /api/tasks/:id`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+If those endpoints are not available yet (404), you will see retry guidance in the UI.

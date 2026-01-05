@@ -1,10 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --color-primary: #000000;
-  --color-secondary: #FFFFFF;
-  --color-accent: #3B82F6;
-  --color-background: #FFFFFF;
+  --tm-primary: #3b82f6;
+  --tm-accent: #06b6d4;
+  --tm-bg: #f9fafb;
+  --tm-surface: #ffffff;
+  --tm-text: #111827;
+  --tm-muted: #64748b;
+  --tm-danger: #ef4444;
+  --tm-border: rgba(15, 23, 42, 0.12);
+  --tm-ring: rgba(59, 130, 246, 0.35);
 }
 
 * {
@@ -17,10 +22,37 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-  background-color: var(--color-background);
-  color: var(--color-primary);
+  background: var(--tm-bg);
+  color: var(--tm-text);
 }
 
 body {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica,
+    Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+/* App layout helpers (kept minimal; Tailwind still used heavily) */
+.tm-container {
+  width: min(1200px, calc(100% - 2rem));
+  margin-inline: auto;
+}
+
+.tm-surface {
+  background: var(--tm-surface);
+  border: 1px solid var(--tm-border);
+  border-radius: 14px;
+}
+
+.tm-shadow {
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+}
+
+.tm-focus {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--tm-ring);
+}
+
+/* Accessible modal scroll lock */
+body[data-modal-open="true"] {
+  overflow: hidden;
 }
