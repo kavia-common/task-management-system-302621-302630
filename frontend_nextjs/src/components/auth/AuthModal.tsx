@@ -66,7 +66,7 @@ export function AuthModal({
     } catch (err) {
       const msg = normalizeApiErrorMessage(err);
       setError(msg);
-      toast.error("Authentication failed", "Please verify details and retry.");
+      toast.error("Authentication failed", msg);
     } finally {
       setSubmitting(false);
     }
