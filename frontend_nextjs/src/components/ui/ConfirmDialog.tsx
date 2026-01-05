@@ -54,9 +54,9 @@ export function ConfirmDialog({
         </>
       }
     >
-      <div className="rounded-xl border border-black/10 bg-black/[0.02] p-3 text-sm text-[var(--tm-muted)]">
-        Tip: You can press <span className="font-semibold">Esc</span> to cancel.
-      </div>
+      <p className="text-sm text-[var(--tm-muted)]">
+        This action can’t be undone.
+      </p>
     </Modal>
   );
 }

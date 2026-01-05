@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
 
 type ActiveRoute = "tasks";
 
 function initials(email: string | null) {
   if (!email) return "U";
-  const parts = email.split("@")[0]?.split(/[._-]/g).filter(Boolean) ?? [];
+  const local = email.split("@")[0] ?? "";
+  const parts = local.split(/[._-]/g).filter(Boolean);
   const chars =
     parts.length >= 2
       ? `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`
@@ -37,44 +37,114 @@ export function AppShell({
 }) {
   const userInitials = useMemo(() => initials(authStatus.email), [authStatus.email]);
 
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const onDocMouseDown = (e: MouseEvent) => {
+      const el = menuRef.current;
+      if (!el) return;
+      if (e.target instanceof Node && el.contains(e.target)) return;
+      setMenuOpen(false);
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+
+    document.addEventListener("mousedown", onDocMouseDown);
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onDocMouseDown);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [menuOpen]);
+
   return (
     <div className="min-h-screen bg-[var(--tm-bg)]">
-      <header className="border-b border-black/10 bg-white/80 backdrop-blur">
+      <header className="border-b border-black/10 bg-white">
         <div className="tm-container flex h-14 items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[var(--tm-primary)] to-[var(--tm-accent)] text-sm font-semibold text-white shadow-sm">
-              TM
-            </div>
-            <div className="leading-tight">
-              <p className="text-sm font-semibold">Task Manager</p>
-              <p className="text-xs text-[var(--tm-muted)]">Simple tasks, fast updates</p>
-            </div>
+          <div className="flex min-w-0 items-center gap-3">
+            <button
+              type="button"
+              onClick={() => onNavigate("tasks")}
+              className="flex min-w-0 items-center gap-3 rounded-lg px-1 py-1 focus:outline-none focus-visible:ring-4 focus-visible:ring-[var(--tm-ring)]"
+              aria-label="Go to Tasks"
+            >
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[var(--tm-primary)] text-sm font-semibold text-white">
+                TM
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-semibold">Task Manager</span>
+                <span className="block truncate text-xs text-[var(--tm-muted)]">
+                  {activeRoute === "tasks" ? "Tasks" : title}
+                </span>
+              </span>
+            </button>
           </div>
 
           <div className="flex items-center gap-2">
             {authStatus.loading ? (
               <span className="text-sm text-[var(--tm-muted)]">Loading…</span>
             ) : authStatus.isAuthenticated ? (
-              <>
-                <div className="hidden items-center gap-2 sm:flex">
-                  <div className="grid h-9 w-9 place-items-center rounded-full border border-black/10 bg-white text-xs font-semibold text-[var(--tm-text)] shadow-sm">
+              <div className="relative" ref={menuRef}>
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen((v) => !v)}
+                  className={[
+                    "inline-flex items-center gap-2 rounded-xl border border-black/10 bg-white px-2.5 py-2 text-sm font-semibold",
+                    "hover:bg-black/[0.02]",
+                    "focus:outline-none focus-visible:ring-4 focus-visible:ring-[var(--tm-ring)]",
+                  ].join(" ")}
+                  aria-haspopup="menu"
+                  aria-expanded={menuOpen}
+                >
+                  <span className="grid h-7 w-7 place-items-center rounded-full bg-black/[0.04] text-xs font-bold text-[var(--tm-text)]">
                     {userInitials}
-                  </div>
-                  <div className="leading-tight">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold">Signed in</span>
-                      <Badge tone="success">active</Badge>
-                    </div>
-                    <span className="text-xs text-[var(--tm-muted)]">
-                      {authStatus.email ?? "user"}
-                    </span>
-                  </div>
-                </div>
+                  </span>
+                  <span className="hidden max-w-[220px] truncate sm:inline">
+                    {authStatus.email ?? "Signed in"}
+                  </span>
+                  <span className="text-[var(--tm-muted)]" aria-hidden="true">
+                    ▾
+                  </span>
+                </button>
 
-                <Button variant="secondary" onClick={onLogout}>
-                  Logout
-                </Button>
-              </>
+                {menuOpen ? (
+                  <div
+                    className="absolute right-0 mt-2 w-[min(92vw,320px)] rounded-xl border border-black/10 bg-white p-2 shadow-[0_12px_30px_rgba(15,23,42,0.12)]"
+                    role="menu"
+                    aria-label="User menu"
+                  >
+                    <div className="px-2 py-2">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-[var(--tm-muted)]">
+                        Signed in as
+                      </p>
+                      <p className="mt-1 truncate text-sm font-semibold text-[var(--tm-text)]">
+                        {authStatus.email ?? "user"}
+                      </p>
+                    </div>
+                    <div className="my-2 h-px bg-black/10" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        onLogout();
+                      }}
+                      className={[
+                        "w-full rounded-lg px-2.5 py-2 text-left text-sm font-semibold text-[var(--tm-text)]",
+                        "hover:bg-black/5",
+                        "focus:outline-none focus-visible:ring-4 focus-visible:ring-[var(--tm-ring)]",
+                      ].join(" ")}
+                      role="menuitem"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                ) : null}
+              </div>
             ) : (
               <>
                 <Button variant="secondary" onClick={onLogin}>
@@ -89,79 +159,18 @@ export function AppShell({
         </div>
       </header>
 
-      <div className="tm-container grid grid-cols-1 gap-4 py-6 md:grid-cols-[260px_1fr]">
-        <aside className="tm-surface tm-shadow-sm h-fit p-3">
-          <div className="flex items-center justify-between px-3 pb-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--tm-muted)]">
-              Navigation
-            </p>
-            <span className="text-xs text-[var(--tm-muted)]">v1</span>
-          </div>
-
-          <nav className="flex flex-col gap-1">
-            <button
-              type="button"
-              onClick={() => onNavigate("tasks")}
-              className={[
-                "group flex items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold transition",
-                "focus:outline-none focus-visible:ring-4 focus-visible:ring-[var(--tm-ring)]",
-                activeRoute === "tasks"
-                  ? "bg-[rgba(59,130,246,0.12)] text-[var(--tm-primary)]"
-                  : "text-[var(--tm-text)] hover:bg-black/5",
-              ].join(" ")}
-              aria-current={activeRoute === "tasks" ? "page" : undefined}
-            >
-              <span className="flex items-center gap-2">
-                <span
-                  className={[
-                    "inline-block h-2 w-2 rounded-full",
-                    activeRoute === "tasks"
-                      ? "bg-[var(--tm-primary)]"
-                      : "bg-black/30 group-hover:bg-black/40",
-                  ].join(" ")}
-                  aria-hidden="true"
-                />
-                Tasks
-              </span>
-
-              <span
-                className={[
-                  "rounded-full px-2 py-0.5 text-xs font-semibold",
-                  activeRoute === "tasks"
-                    ? "bg-white text-[var(--tm-primary)] border border-[rgba(59,130,246,0.25)]"
-                    : "bg-black/5 text-[var(--tm-muted)]",
-                ].join(" ")}
-              >
-                CRUD
-              </span>
-            </button>
-          </nav>
-
-          <div className="mt-4 rounded-xl border border-black/10 bg-gradient-to-br from-[rgba(59,130,246,0.10)] to-[rgba(6,182,212,0.08)] p-3">
-            <p className="text-sm font-semibold">Tips</p>
+      <main className="tm-container py-6">
+        <div className="mx-auto w-full max-w-3xl">
+          <div className="mb-4">
+            <h1 className="text-lg font-semibold">{title}</h1>
             <p className="mt-1 text-sm text-[var(--tm-muted)]">
-              Optimistic updates are enabled. If you see a concurrency warning, hit{" "}
-              <span className="font-semibold">Refresh</span> to sync with the latest server state.
+              A simple, focused workspace for your tasks.
             </p>
           </div>
-        </aside>
 
-        <main className="tm-surface tm-shadow p-4 sm:p-5">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-black/10 pb-3">
-            <div className="min-w-0">
-              <h1 className="text-lg font-semibold">{title}</h1>
-              <p className="mt-0.5 text-sm text-[var(--tm-muted)]">
-                Stay focused. Keep tasks small and actionable.
-              </p>
-            </div>
-            <span className="text-sm text-[var(--tm-muted)]">
-              {new Date().toLocaleDateString()}
-            </span>
-          </div>
-
-          <div className="pt-4">{children}</div>
-        </main>
-      </div>
+          <div className="tm-surface tm-shadow-sm p-4 sm:p-6">{children}</div>
+        </div>
+      </main>
     </div>
   );
 }

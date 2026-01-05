@@ -9,19 +9,16 @@
   --tm-muted: #64748b;
   --tm-danger: #ef4444;
 
-  /* refined neutrals */
+  /* neutrals */
   --tm-border: rgba(15, 23, 42, 0.12);
   --tm-border-strong: rgba(15, 23, 42, 0.18);
   --tm-ring: rgba(59, 130, 246, 0.35);
 
-  /* shadows + radii */
+  /* radii + shadows (subtle) */
   --tm-radius-lg: 16px;
   --tm-radius-md: 12px;
   --tm-shadow-sm: 0 2px 10px rgba(15, 23, 42, 0.06);
   --tm-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-
-  /* animation */
-  --tm-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 * {
@@ -41,16 +38,12 @@ body {
 body {
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica,
     Arial, "Apple Color Emoji", "Segoe UI Emoji";
-}
-
-/* Base: nicer default text rendering */
-body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
 ::selection {
-  background: rgba(59, 130, 246, 0.20);
+  background: rgba(59, 130, 246, 0.18);
 }
 
 a {
@@ -65,9 +58,9 @@ textarea {
   font: inherit;
 }
 
-/* App layout helpers (kept minimal; Tailwind still used heavily) */
+/* Layout helpers */
 .tm-container {
-  width: min(1200px, calc(100% - 2rem));
+  width: min(1100px, calc(100% - 2rem));
   margin-inline: auto;
 }
 
@@ -86,7 +79,6 @@ textarea {
 }
 
 /* Consistent focus ring */
-.tm-focus,
 :focus-visible {
   outline: none;
   box-shadow: 0 0 0 4px var(--tm-ring);
@@ -97,102 +89,7 @@ body[data-modal-open="true"] {
   overflow: hidden;
 }
 
-/* Subtle animations */
-@media (prefers-reduced-motion: no-preference) {
-  .tm-animate-in {
-    animation: tm-fade-up 240ms var(--tm-ease) both;
-  }
-
-  .tm-animate-pop {
-    animation: tm-pop 220ms var(--tm-ease) both;
-  }
-
-  .tm-toast-in {
-    animation: tm-toast-in 220ms var(--tm-ease) both;
-  }
-
-  .tm-toast-out {
-    animation: tm-toast-out 160ms var(--tm-ease) both;
-  }
-
-  .tm-skeleton {
-    position: relative;
-    overflow: hidden;
-    background: rgba(15, 23, 42, 0.06);
-  }
-
-  .tm-skeleton::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    transform: translateX(-100%);
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.65),
-      transparent
-    );
-    animation: tm-shimmer 1.2s linear infinite;
-  }
-
-  @keyframes tm-fade-up {
-    from {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes tm-pop {
-    from {
-      opacity: 0;
-      transform: scale(0.98);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  @keyframes tm-toast-in {
-    from {
-      opacity: 0;
-      transform: translateY(-6px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes tm-toast-out {
-    from {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    to {
-      opacity: 0;
-      transform: translateY(-6px);
-    }
-  }
-
-  @keyframes tm-shimmer {
-    to {
-      transform: translateX(100%);
-    }
-  }
-}
-
-/* Respect reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  .tm-animate-in,
-  .tm-animate-pop,
-  .tm-toast-in,
-  .tm-toast-out,
-  .tm-skeleton::after {
-    animation: none !important;
-  }
+/* Skeleton (static; no shimmer to keep UI calm) */
+.tm-skeleton {
+  background: rgba(15, 23, 42, 0.07);
 }

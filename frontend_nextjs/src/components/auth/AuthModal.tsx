@@ -29,21 +29,21 @@ export function AuthModal({
   const [error, setError] = useState<string | null>(null);
 
   const title = useMemo(
-    () => (mode === "login" ? "Welcome back" : "Create your account"),
+    () => (mode === "login" ? "Sign in" : "Create account"),
     [mode]
   );
 
   const description = useMemo(
     () =>
       mode === "login"
-        ? "Sign in to manage your tasks."
+        ? "Use your email and password to access your tasks."
         : "Register with email and password to start managing tasks.",
     [mode]
   );
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (submitting) return; // prevent rapid duplicate submissions
+    if (submitting) return;
     setError(null);
 
     if (!email.trim()) {
@@ -81,41 +81,18 @@ export function AuthModal({
       >
         {mode === "login" ? "Need an account?" : "Already have an account?"}
       </Button>
-      <Button
-        variant="secondary"
-        onClick={onClose}
-        disabled={submitting || authLoading}
-      >
+      <Button variant="secondary" onClick={onClose} disabled={submitting || authLoading}>
         Cancel
       </Button>
-      <Button
-        variant="primary"
-        type="submit"
-        form="auth-form"
-        loading={submitting || authLoading}
-      >
+      <Button variant="primary" type="submit" form="auth-form" loading={submitting || authLoading}>
         {mode === "login" ? "Login" : "Register"}
       </Button>
     </>
   );
 
   return (
-    <Modal
-      open={open}
-      title={title}
-      description={description}
-      onClose={onClose}
-      footer={footer}
-    >
+    <Modal open={open} title={title} description={description} onClose={onClose} footer={footer}>
       <form id="auth-form" onSubmit={onSubmit} className="space-y-4">
-        <div className="rounded-xl border border-black/10 bg-gradient-to-br from-[rgba(59,130,246,0.10)] to-[rgba(6,182,212,0.08)] p-3 text-sm">
-          <p className="font-semibold">Session persistence</p>
-          <p className="mt-1 text-[var(--tm-muted)]">
-            This UI is a static export SPA. Your session is stored locally and resumes
-            after refresh/redeploy.
-          </p>
-        </div>
-
         <Input
           label="Email"
           type="email"
@@ -125,6 +102,7 @@ export function AuthModal({
           disabled={submitting || authLoading}
           placeholder="you@company.com"
         />
+
         <Input
           label="Password"
           type="password"
@@ -132,24 +110,23 @@ export function AuthModal({
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           disabled={submitting || authLoading}
-          hint="Use a strong password. (Backend policy may apply.)"
           placeholder="••••••••"
         />
 
         {error ? (
           <div
-            className="rounded-xl border border-[var(--tm-danger)] bg-[rgba(239,68,68,0.08)] p-3 text-sm"
+            className="rounded-xl border border-[var(--tm-danger)] bg-[rgba(239,68,68,0.06)] p-3 text-sm"
             role="alert"
           >
             <p className="font-semibold text-[var(--tm-danger)]">Error</p>
-            <p className="mt-1 text-[var(--tm-text)]">
-              {error}{" "}
-              <span className="text-[var(--tm-muted)]">
-                If this persists, try again or refresh the page.
-              </span>
-            </p>
+            <p className="mt-1 text-[var(--tm-text)]">{error}</p>
           </div>
         ) : null}
+
+        <p className="text-xs text-[var(--tm-muted)]">
+          Note: This UI is a static export SPA. Your session is stored locally and resumes after
+          refresh/redeploy.
+        </p>
       </form>
     </Modal>
   );

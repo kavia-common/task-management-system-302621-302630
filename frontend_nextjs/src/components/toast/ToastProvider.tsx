@@ -9,7 +9,6 @@ type Toast = {
   kind: ToastKind;
   title: string;
   description?: string;
-  closing?: boolean;
 };
 
 type ToastApi = {
@@ -29,18 +28,14 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const remove = React.useCallback((id: string) => {
-    // animate out first
-    setToasts((ts) => ts.map((t) => (t.id === id ? { ...t, closing: true } : t)));
-    window.setTimeout(() => {
-      setToasts((ts) => ts.filter((t) => t.id !== id));
-    }, 170);
+    setToasts((ts) => ts.filter((t) => t.id !== id));
   }, []);
 
   const push = React.useCallback(
     (kind: ToastKind, title: string, description?: string) => {
       const id = uid();
-      setToasts((ts) => [...ts, { id, kind, title, description, closing: false }]);
-      // Auto-dismiss after 6s (user can still close sooner).
+      setToasts((ts) => [...ts, { id, kind, title, description }]);
+      // Auto-dismiss after 6s.
       window.setTimeout(() => remove(id), 6000);
     },
     [remove]
@@ -60,17 +55,14 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={api}>
       {children}
       <div
-        className="fixed top-4 right-4 z-[60] flex w-[min(92vw,420px)] flex-col gap-2"
+        className="fixed right-4 top-4 z-[60] flex w-[min(92vw,420px)] flex-col gap-2"
         aria-live="polite"
         aria-relevant="additions removals"
       >
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={[
-              "tm-surface tm-shadow-sm px-4 py-3",
-              t.closing ? "tm-toast-out" : "tm-toast-in",
-            ].join(" ")}
+            className="tm-surface tm-shadow-sm px-4 py-3"
             role="status"
           >
             <div className="flex items-start justify-between gap-3">
@@ -90,9 +82,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                   <p className="truncate text-sm font-semibold">{t.title}</p>
                 </div>
                 {t.description ? (
-                  <p className="mt-1 text-sm text-[var(--tm-muted)]">
-                    {t.description}
-                  </p>
+                  <p className="mt-1 text-sm text-[var(--tm-muted)]">{t.description}</p>
                 ) : null}
               </div>
               <button

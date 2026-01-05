@@ -89,13 +89,11 @@ export function TasksDashboard({ onRequireAuth }: { onRequireAuth: () => void })
 
   const filtered = useMemo(() => {
     const byStatus =
-      statusFilter === "all"
-        ? tasks
-        : tasks.filter((t) => t.status === statusFilter);
+      statusFilter === "all" ? tasks : tasks.filter((t) => t.status === statusFilter);
 
     const byQuery = byStatus.filter((t) => matchTask(t, query));
 
-    // Keep optimistic tasks near the top while still stable
+    // Keep optimistic tasks near the top while still stable.
     return [...byQuery].sort((a, b) => {
       const ao = a._optimistic ? 1 : 0;
       const bo = b._optimistic ? 1 : 0;
@@ -153,7 +151,6 @@ export function TasksDashboard({ onRequireAuth }: { onRequireAuth: () => void })
       _optimistic: true,
     };
 
-    // Optimistic insert at top
     setTasks((prev) => [optimistic, ...prev]);
 
     try {
@@ -175,11 +172,10 @@ export function TasksDashboard({ onRequireAuth }: { onRequireAuth: () => void })
       onRequireAuth();
       return;
     }
-    if (busyIds[id]) return; // prevent rapid clicks
+    if (busyIds[id]) return;
 
     setBusyIds((m) => ({ ...m, [id]: true }));
 
-    // Keep snapshot for rollback
     const before = tasks.find((t) => t.id === id);
     if (!before) {
       setBusyIds((m) => ({ ...m, [id]: false }));
@@ -200,20 +196,16 @@ export function TasksDashboard({ onRequireAuth }: { onRequireAuth: () => void })
         accessToken: session.accessToken,
         id,
         task: patch,
-        // Used for concurrency protection if backend supports it; safe if ignored.
         ifMatch: before.updatedAt ?? undefined,
       });
 
       setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
       toast.success("Task updated");
     } catch (err) {
-      // Roll back and show guidance
       setTasks((prev) => prev.map((t) => (t.id === id ? before : t)));
 
       if (err instanceof ApiError && (err.status === 409 || err.status === 412)) {
-        setRefreshHint(
-          "This task was updated elsewhere. Refresh to sync before trying again."
-        );
+        setRefreshHint("This task was updated elsewhere. Refresh to sync before trying again.");
         toast.error("Concurrent update detected", "Please refresh and retry.");
       } else {
         toast.error("Update failed", "Please retry. If it persists, refresh.");
@@ -233,7 +225,6 @@ export function TasksDashboard({ onRequireAuth }: { onRequireAuth: () => void })
 
     setBusyIds((m) => ({ ...m, [id]: true }));
 
-    // Optimistic remove
     const before = tasks;
     setTasks((prev) => prev.filter((t) => t.id !== id));
 
@@ -249,72 +240,25 @@ export function TasksDashboard({ onRequireAuth }: { onRequireAuth: () => void })
     }
   }
 
-  const headerActions = (
-    <div className="flex flex-wrap items-center gap-2">
-      <Button
-        variant="secondary"
-        onClick={() => void load()}
-        disabled={!canUseApi || loading}
-        loading={loading}
-      >
-        Refresh
-      </Button>
-      <Button
-        variant="primary"
-        onClick={() => {
-          if (!canUseApi) {
-            onRequireAuth();
-            return;
-          }
-          setEditing(null);
-          setEditorOpen(true);
-        }}
-        disabled={loading}
-      >
-        New Task
-      </Button>
-    </div>
-  );
-
   const filterChips = (
     <ChipGroup<StatusFilter>
-      label="Filter"
+      label="Status"
       value={statusFilter}
       onChange={setStatusFilter}
       options={[
-        {
-          value: "all",
-          label: "All",
-          count: tasks.length,
-        },
-        {
-          value: "todo",
-          label: "Todo",
-          count: statusCounts.todo,
-        },
-        {
-          value: "in_progress",
-          label: "In progress",
-          count: statusCounts.in_progress,
-        },
-        {
-          value: "done",
-          label: "Done",
-          count: statusCounts.done,
-        },
+        { value: "all", label: "All", count: tasks.length },
+        { value: "todo", label: "Todo", count: statusCounts.todo },
+        { value: "in_progress", label: "In progress", count: statusCounts.in_progress },
+        { value: "done", label: "Done", count: statusCounts.done },
       ]}
     />
   );
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-sm text-[var(--tm-muted)]">
-            Manage tasks with optimistic updates and clear error recovery.
-          </p>
-
-          <div className="mt-3 flex flex-wrap items-center gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0 space-y-3">
+          <div className="flex flex-wrap items-center gap-3">
             {filterChips}
             <div className="w-full sm:w-[320px]">
               <Input
@@ -329,7 +273,31 @@ export function TasksDashboard({ onRequireAuth }: { onRequireAuth: () => void })
           </div>
         </div>
 
-        {headerActions}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="secondary"
+            onClick={() => void load()}
+            disabled={!canUseApi || loading}
+            loading={loading}
+          >
+            Refresh
+          </Button>
+
+          <Button
+            variant="primary"
+            onClick={() => {
+              if (!canUseApi) {
+                onRequireAuth();
+                return;
+              }
+              setEditing(null);
+              setEditorOpen(true);
+            }}
+            disabled={loading}
+          >
+            Add Task
+          </Button>
+        </div>
       </div>
 
       {!canUseApi ? (
@@ -338,7 +306,7 @@ export function TasksDashboard({ onRequireAuth }: { onRequireAuth: () => void })
             You’re not logged in.{" "}
             <button
               type="button"
-              className="font-semibold text-[var(--tm-primary)] hover:underline focus:outline-none focus-visible:ring-4 focus-visible:ring-[var(--tm-ring)] rounded-md px-1"
+              className="rounded-md px-1 font-semibold text-[var(--tm-primary)] hover:underline focus:outline-none focus-visible:ring-4 focus-visible:ring-[var(--tm-ring)]"
               onClick={onRequireAuth}
             >
               Login
@@ -353,7 +321,7 @@ export function TasksDashboard({ onRequireAuth }: { onRequireAuth: () => void })
 
       {refreshHint ? (
         <div
-          className="rounded-xl border border-[rgba(59,130,246,0.35)] bg-[rgba(59,130,246,0.08)] p-3 text-sm"
+          className="rounded-xl border border-[rgba(59,130,246,0.25)] bg-[rgba(59,130,246,0.06)] p-3 text-sm"
           role="status"
         >
           <p className="font-semibold text-[var(--tm-primary)]">Refresh recommended</p>
@@ -363,57 +331,31 @@ export function TasksDashboard({ onRequireAuth }: { onRequireAuth: () => void })
 
       {loadError ? (
         <div
-          className="rounded-xl border border-[var(--tm-danger)] bg-[rgba(239,68,68,0.08)] p-4 text-sm"
+          className="rounded-xl border border-[var(--tm-danger)] bg-[rgba(239,68,68,0.06)] p-4 text-sm"
           role="alert"
         >
           <p className="font-semibold text-[var(--tm-danger)]">Could not load tasks</p>
           <p className="mt-1 text-[var(--tm-text)]">{loadError}</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <Button
-              variant="primary"
-              onClick={() => void load()}
-              disabled={loading}
-              loading={loading}
-            >
+            <Button variant="primary" onClick={() => void load()} disabled={loading} loading={loading}>
               Retry
             </Button>
-            <Button
-              variant="secondary"
-              onClick={() => window.location.reload()}
-              disabled={loading}
-            >
+            <Button variant="secondary" onClick={() => window.location.reload()} disabled={loading}>
               Reload page
             </Button>
           </div>
-          <p className="mt-2 text-[var(--tm-muted)]">
-            Note: If the backend API endpoints are not available yet, you may see 404
-            errors until the backend implements /api/auth and /api/tasks.
-          </p>
         </div>
       ) : null}
 
       <section className="space-y-2" aria-label="Tasks list">
         {loading && tasks.length === 0 ? (
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div className="space-y-2">
             {Array.from({ length: 6 }).map((_, idx) => (
-              <div
-                key={idx}
-                className="tm-surface tm-shadow-sm p-4"
-                aria-hidden="true"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <Skeleton className="h-4 w-[70%]" />
-                    <div className="mt-2 space-y-2">
-                      <Skeleton className="h-3 w-full" />
-                      <Skeleton className="h-3 w-[85%]" />
-                    </div>
-                    <div className="mt-3 flex gap-2">
-                      <Skeleton className="h-6 w-20" />
-                      <Skeleton className="h-6 w-24" />
-                    </div>
-                  </div>
-                  <Skeleton className="h-8 w-20" />
+              <div key={idx} className="rounded-xl border border-black/10 bg-white p-3" aria-hidden="true">
+                <Skeleton className="h-4 w-[60%]" />
+                <div className="mt-2 space-y-2">
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-[80%]" />
                 </div>
               </div>
             ))}
@@ -433,11 +375,15 @@ export function TasksDashboard({ onRequireAuth }: { onRequireAuth: () => void })
                 <Button
                   variant="primary"
                   onClick={() => {
+                    if (!canUseApi) {
+                      onRequireAuth();
+                      return;
+                    }
                     setEditing(null);
                     setEditorOpen(true);
                   }}
                 >
-                  New Task
+                  Add Task
                 </Button>
               ) : (
                 <>
@@ -454,108 +400,170 @@ export function TasksDashboard({ onRequireAuth }: { onRequireAuth: () => void })
         ) : null}
 
         {filtered.length > 0 ? (
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            {filtered.map((t) => {
-              const busy = !!busyIds[t.id];
-              const tone = statusTone(t.status);
-              const pTone = priorityTone(t.priority);
-              const updated = new Date(t.updatedAt ?? t.createdAt).toLocaleString();
+          <>
+            {/* Desktop/table view */}
+            <div className="hidden md:block overflow-x-auto rounded-xl border border-black/10 bg-white">
+              <table className="min-w-full text-left text-sm">
+                <thead className="bg-black/[0.02] text-xs font-semibold uppercase tracking-wide text-[var(--tm-muted)]">
+                  <tr>
+                    <th className="px-4 py-3">Task</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Priority</th>
+                    <th className="px-4 py-3">Updated</th>
+                    <th className="px-4 py-3">
+                      <span className="sr-only">Actions</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((t) => {
+                    const busy = !!busyIds[t.id];
+                    const updated = new Date(t.updatedAt ?? t.createdAt).toLocaleString();
+                    return (
+                      <tr key={t.id} className="border-t border-black/10 align-top">
+                        <td className="px-4 py-3">
+                          <div className="flex items-start gap-2">
+                            <span
+                              className={[
+                                "mt-1 inline-block h-2.5 w-2.5 rounded-full",
+                                t.status === "done"
+                                  ? "bg-[var(--tm-accent)]"
+                                  : t.status === "in_progress"
+                                  ? "bg-[var(--tm-primary)]"
+                                  : "bg-black/30",
+                              ].join(" ")}
+                              aria-hidden="true"
+                            />
+                            <div className="min-w-0">
+                              <p className="truncate font-semibold text-[var(--tm-text)]">
+                                {t.title}
+                                {t._optimistic ? (
+                                  <span className="ml-2 text-xs font-semibold text-[var(--tm-muted)]">
+                                    syncing…
+                                  </span>
+                                ) : null}
+                              </p>
+                              <p className="mt-1 line-clamp-1 text-xs text-[var(--tm-muted)]">
+                                {t.description ? t.description : "—"}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <Badge tone={statusTone(t.status)}>{statusLabel(t.status)}</Badge>
+                        </td>
+                        <td className="px-4 py-3">
+                          <Badge tone={priorityTone(t.priority)}>
+                            {t.priority ? t.priority : "—"}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3 text-xs text-[var(--tm-muted)]">{updated}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-wrap justify-end gap-2">
+                            <Button
+                              variant="secondary"
+                              disabled={busy || !canUseApi}
+                              onClick={() => void onUpdate(t.id, { status: nextStatus(t.status) })}
+                              className="px-2 py-1 text-xs"
+                              aria-label={`Toggle status for ${t.title}`}
+                              title="Toggle status (todo → in progress → done)"
+                            >
+                              Toggle
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              disabled={busy}
+                              onClick={() => {
+                                setEditing(t);
+                                setEditorOpen(true);
+                              }}
+                              className="px-2 py-1 text-xs"
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              variant="danger"
+                              disabled={busy}
+                              onClick={() => setDeleteTarget(t)}
+                              className="px-2 py-1 text-xs"
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
 
-              return (
-                <article
-                  key={t.id}
-                  className={[
-                    "tm-surface tm-shadow-sm p-4 transition",
-                    "hover:shadow-md hover:-translate-y-[0.5px]",
-                    t._optimistic ? "ring-2 ring-[rgba(59,130,246,0.18)]" : "",
-                  ].join(" ")}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex items-start gap-2">
-                        <span
-                          className={[
-                            "mt-1 inline-block h-2.5 w-2.5 rounded-full",
-                            t.status === "done"
-                              ? "bg-[var(--tm-accent)]"
-                              : t.status === "in_progress"
-                              ? "bg-[var(--tm-primary)]"
-                              : "bg-black/30",
-                          ].join(" ")}
-                          aria-hidden="true"
-                        />
-                        <div className="min-w-0">
-                          <h3 className="truncate text-sm font-semibold">
-                            {t.title}{" "}
-                            {t._optimistic ? (
-                              <span className="ml-1 text-xs font-semibold text-[var(--tm-muted)]">
-                                syncing…
-                              </span>
-                            ) : null}
-                          </h3>
+            {/* Mobile/card view */}
+            <div className="space-y-2 md:hidden">
+              {filtered.map((t) => {
+                const busy = !!busyIds[t.id];
+                const updated = new Date(t.updatedAt ?? t.createdAt).toLocaleString();
+                return (
+                  <article key={t.id} className="rounded-xl border border-black/10 bg-white p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold">
+                          {t.title}
+                          {t._optimistic ? (
+                            <span className="ml-2 text-xs font-semibold text-[var(--tm-muted)]">
+                              syncing…
+                            </span>
+                          ) : null}
+                        </p>
+                        <p className="mt-1 text-sm text-[var(--tm-muted)]">
+                          {t.description ? t.description : <span className="italic">No description</span>}
+                        </p>
 
-                          {t.description ? (
-                            <p className="mt-1 line-clamp-2 text-sm text-[var(--tm-muted)]">
-                              {t.description}
-                            </p>
-                          ) : (
-                            <p className="mt-1 text-sm text-[var(--tm-muted)]">
-                              <span className="italic">No description</span>
-                            </p>
-                          )}
-
-                          <p className="mt-2 text-xs text-[var(--tm-muted)]">
-                            Updated {updated}
-                          </p>
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <Badge tone={statusTone(t.status)}>{statusLabel(t.status)}</Badge>
+                          <Badge tone={priorityTone(t.priority)}>
+                            {t.priority ? `priority: ${t.priority}` : "priority: —"}
+                          </Badge>
                         </div>
-                      </div>
 
-                      <div className="mt-3 flex flex-wrap items-center gap-2">
-                        <Badge tone={tone}>{statusLabel(t.status)}</Badge>
-                        <Badge tone={pTone}>
-                          {t.priority ? `priority: ${t.priority}` : "priority: —"}
-                        </Badge>
+                        <p className="mt-2 text-xs text-[var(--tm-muted)]">Updated {updated}</p>
                       </div>
                     </div>
 
-                    <div className="flex shrink-0 flex-col items-end gap-2">
+                    <div className="mt-3 flex flex-wrap gap-2">
                       <Button
                         variant="secondary"
                         disabled={busy || !canUseApi}
                         onClick={() => void onUpdate(t.id, { status: nextStatus(t.status) })}
-                        loading={busy && t._optimistic}
-                        className="whitespace-nowrap"
-                        aria-label={`Toggle status for ${t.title}`}
-                        title="Toggle status (todo → in progress → done)"
+                        className="flex-1"
                       >
                         Toggle
                       </Button>
-
-                      <div className="flex flex-wrap justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          disabled={busy}
-                          onClick={() => {
-                            setEditing(t);
-                            setEditorOpen(true);
-                          }}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          variant="danger"
-                          disabled={busy}
-                          onClick={() => setDeleteTarget(t)}
-                        >
-                          Delete
-                        </Button>
-                      </div>
+                      <Button
+                        variant="ghost"
+                        disabled={busy}
+                        onClick={() => {
+                          setEditing(t);
+                          setEditorOpen(true);
+                        }}
+                        className="flex-1"
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="danger"
+                        disabled={busy}
+                        onClick={() => setDeleteTarget(t)}
+                        className="flex-1"
+                      >
+                        Delete
+                      </Button>
                     </div>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+                  </article>
+                );
+              })}
+            </div>
+          </>
         ) : null}
       </section>
 
