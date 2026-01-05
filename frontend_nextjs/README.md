@@ -8,7 +8,9 @@ The UI calls the backend REST API directly from the browser.
 
 - Environment variable:
   - `NEXT_PUBLIC_API_BASE`
-- Default (when not set): `http://localhost:3001`
+- Default (when not set):
+  - Cloud preview fallback (this workspace): `https://vscode-internal-11829-beta.beta01.cloud.kavia.ai:3001`
+  - Otherwise local dev fallback: `http://localhost:3001`
 
 Local dev defaults (recommended):
 - Frontend: `http://localhost:3000`
