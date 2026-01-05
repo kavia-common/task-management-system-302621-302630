@@ -14,6 +14,12 @@ Local dev defaults (recommended):
 - Frontend: `http://localhost:3000`
 - Backend: `http://localhost:3001`
 
+Cloud preview (this workspace):
+- Frontend: `https://vscode-internal-11829-beta.beta01.cloud.kavia.ai:3000`
+- Backend: `https://vscode-internal-11829-beta.beta01.cloud.kavia.ai:3001`
+- Set:
+  - `NEXT_PUBLIC_API_BASE=https://vscode-internal-11829-beta.beta01.cloud.kavia.ai:3001`
+
 Example:
 
 ```bash
