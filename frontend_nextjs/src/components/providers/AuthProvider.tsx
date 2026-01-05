@@ -3,27 +3,12 @@
 import React, { useEffect } from "react";
 import { AuthContext, AuthSession, AuthStatus } from "@/hooks/useAuth";
 import { authApi } from "@/lib/api/auth";
-import { safeJsonParse } from "@/lib/safeJson";
 import { useToast } from "@/components/toast/ToastProvider";
-
-const STORAGE_KEY = "tm_session_v1";
-
-function readStoredSession(): AuthSession | null {
-  if (typeof window === "undefined") return null;
-  const raw = window.localStorage.getItem(STORAGE_KEY);
-  if (!raw) return null;
-  const parsed = safeJsonParse<AuthSession>(raw);
-  return parsed ?? null;
-}
-
-function writeStoredSession(session: AuthSession | null) {
-  if (typeof window === "undefined") return;
-  if (!session) {
-    window.localStorage.removeItem(STORAGE_KEY);
-    return;
-  }
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-}
+import {
+  getSessionStorageKey,
+  readStoredSession,
+  writeStoredSession,
+} from "@/lib/auth/sessionStorage";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const toast = useToast();
@@ -41,8 +26,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Sync across tabs.
     const handler = (e: StorageEvent) => {
-      if (e.key !== STORAGE_KEY) return;
-      const next = e.newValue ? safeJsonParse<AuthSession>(e.newValue) : null;
+      if (e.key !== getSessionStorageKey()) return;
+      const next = e.newValue ? (JSON.parse(e.newValue) as AuthSession) : null;
       setStatus({ loading: false, session: next });
     };
     window.addEventListener("storage", handler);
