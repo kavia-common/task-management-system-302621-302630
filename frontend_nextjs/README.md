@@ -38,6 +38,31 @@ Because static export cannot rely on Next.js server sessions, the app persists t
 - On reload/redeploy, the app reads `localStorage` and resumes the session
 - Logout clears local state immediately (best-effort call to backend logout)
 
+## UI/UX enhancements (what changed)
+
+The UI was refreshed to be more interactive, clean, and accessible while keeping existing auth + tasks CRUD behavior intact:
+
+- Polished light theme using:
+  - primary `#3b82f6`, accent/success `#06b6d4`, muted `#64748b`, error `#EF4444`
+  - background `#f9fafb`, surface `#ffffff`, text `#111827`
+- Subtle motion/feedback:
+  - button hover/press micro-interactions
+  - modal open/close transitions
+  - toast enter/exit animations
+  - skeleton loading placeholders for task list initial load
+- Tasks dashboard improvements:
+  - search input (title/description/status/priority)
+  - status filter chips (All / Todo / In progress / Done)
+  - pill badges for status and priority
+  - inline status toggle (cycles todo → in_progress → done) using existing optimistic update logic
+  - responsive grid layout for tasks (desktop/tablet friendly)
+- Navigation polish:
+  - refined sidebar active styling
+  - top bar avatar initials when logged in
+- Accessibility:
+  - consistent focus-visible rings
+  - modal ARIA improvements (`aria-describedby`, keyboard Escape support)
+
 ## Notes
 
 - The UI expects backend endpoints:

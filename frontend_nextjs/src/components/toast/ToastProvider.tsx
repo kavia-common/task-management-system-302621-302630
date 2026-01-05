@@ -9,6 +9,7 @@ type Toast = {
   kind: ToastKind;
   title: string;
   description?: string;
+  closing?: boolean;
 };
 
 type ToastApi = {
@@ -28,13 +29,17 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const remove = React.useCallback((id: string) => {
-    setToasts((ts) => ts.filter((t) => t.id !== id));
+    // animate out first
+    setToasts((ts) => ts.map((t) => (t.id === id ? { ...t, closing: true } : t)));
+    window.setTimeout(() => {
+      setToasts((ts) => ts.filter((t) => t.id !== id));
+    }, 170);
   }, []);
 
   const push = React.useCallback(
     (kind: ToastKind, title: string, description?: string) => {
       const id = uid();
-      setToasts((ts) => [...ts, { id, kind, title, description }]);
+      setToasts((ts) => [...ts, { id, kind, title, description, closing: false }]);
       // Auto-dismiss after 6s (user can still close sooner).
       window.setTimeout(() => remove(id), 6000);
     },
@@ -62,7 +67,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         {toasts.map((t) => (
           <div
             key={t.id}
-            className="tm-surface tm-shadow px-4 py-3"
+            className={[
+              "tm-surface tm-shadow-sm px-4 py-3",
+              t.closing ? "tm-toast-out" : "tm-toast-in",
+            ].join(" ")}
             role="status"
           >
             <div className="flex items-start justify-between gap-3">
@@ -89,7 +97,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               </div>
               <button
                 type="button"
-                className="shrink-0 rounded-md px-2 py-1 text-sm text-[var(--tm-muted)] hover:bg-black/5"
+                className="shrink-0 rounded-lg px-2 py-1 text-sm text-[var(--tm-muted)] hover:bg-black/5 focus:outline-none focus-visible:ring-4 focus-visible:ring-[var(--tm-ring)]"
                 onClick={() => api.remove(t.id)}
                 aria-label="Dismiss notification"
               >

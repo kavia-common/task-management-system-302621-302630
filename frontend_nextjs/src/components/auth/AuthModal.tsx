@@ -29,7 +29,7 @@ export function AuthModal({
   const [error, setError] = useState<string | null>(null);
 
   const title = useMemo(
-    () => (mode === "login" ? "Login" : "Create account"),
+    () => (mode === "login" ? "Welcome back" : "Create your account"),
     [mode]
   );
 
@@ -88,15 +88,34 @@ export function AuthModal({
       >
         Cancel
       </Button>
-      <Button variant="primary" type="submit" form="auth-form" loading={submitting || authLoading}>
+      <Button
+        variant="primary"
+        type="submit"
+        form="auth-form"
+        loading={submitting || authLoading}
+      >
         {mode === "login" ? "Login" : "Register"}
       </Button>
     </>
   );
 
   return (
-    <Modal open={open} title={title} description={description} onClose={onClose} footer={footer}>
-      <form id="auth-form" onSubmit={onSubmit} className="space-y-3">
+    <Modal
+      open={open}
+      title={title}
+      description={description}
+      onClose={onClose}
+      footer={footer}
+    >
+      <form id="auth-form" onSubmit={onSubmit} className="space-y-4">
+        <div className="rounded-xl border border-black/10 bg-gradient-to-br from-[rgba(59,130,246,0.10)] to-[rgba(6,182,212,0.08)] p-3 text-sm">
+          <p className="font-semibold">Session persistence</p>
+          <p className="mt-1 text-[var(--tm-muted)]">
+            This UI is a static export SPA. Your session is stored locally and resumes
+            after refresh/redeploy.
+          </p>
+        </div>
+
         <Input
           label="Email"
           type="email"
@@ -104,6 +123,7 @@ export function AuthModal({
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={submitting || authLoading}
+          placeholder="you@company.com"
         />
         <Input
           label="Password"
@@ -113,6 +133,7 @@ export function AuthModal({
           onChange={(e) => setPassword(e.target.value)}
           disabled={submitting || authLoading}
           hint="Use a strong password. (Backend policy may apply.)"
+          placeholder="••••••••"
         />
 
         {error ? (

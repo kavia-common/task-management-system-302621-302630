@@ -27,17 +27,14 @@ export function TaskModal({
     status: TaskStatus;
     priority?: TaskPriority;
   }) => Promise<void>;
-  onUpdate: (
-    id: string,
-    patch: Partial<Omit<Task, "id">>
-  ) => Promise<void>;
+  onUpdate: (id: string, patch: Partial<Omit<Task, "id">>) => Promise<void>;
 }) {
   const toast = useToast();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<TaskStatus>("todo");
-  const [priority, setPriority] = useState<TaskPriority | "">( "" );
+  const [priority, setPriority] = useState<TaskPriority | "">("");
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,10 +52,7 @@ export function TaskModal({
     setPriority((task?.priority as TaskPriority | null) ?? "");
   }, [open, task]);
 
-  const modalTitle = useMemo(
-    () => (isEdit ? "Edit task" : "New task"),
-    [isEdit]
-  );
+  const modalTitle = useMemo(() => (isEdit ? "Edit task" : "New task"), [isEdit]);
 
   const modalDescription = useMemo(
     () =>
@@ -108,12 +102,7 @@ export function TaskModal({
       <Button variant="secondary" onClick={onClose} disabled={submitting}>
         Cancel
       </Button>
-      <Button
-        variant="primary"
-        type="submit"
-        form="task-form"
-        loading={submitting}
-      >
+      <Button variant="primary" type="submit" form="task-form" loading={submitting}>
         {isEdit ? "Save" : "Create"}
       </Button>
     </>
@@ -127,7 +116,7 @@ export function TaskModal({
       onClose={onClose}
       footer={footer}
     >
-      <form id="task-form" onSubmit={onSubmit} className="space-y-3">
+      <form id="task-form" onSubmit={onSubmit} className="space-y-4">
         <Input
           label="Title"
           value={title}
@@ -137,9 +126,16 @@ export function TaskModal({
         />
 
         <label className="block">
-          <span className="text-sm font-medium">Description</span>
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="text-sm font-semibold">Description</span>
+            <span className="text-xs text-[var(--tm-muted)]">optional</span>
+          </div>
           <textarea
-            className="mt-1 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[var(--tm-text)] focus:outline-none focus:ring-4 focus:ring-[var(--tm-ring)]"
+            className={[
+              "mt-1 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[var(--tm-text)] shadow-sm transition",
+              "focus:outline-none focus:ring-4 focus:ring-[var(--tm-ring)]",
+              "disabled:bg-black/[0.02] disabled:cursor-not-allowed",
+            ].join(" ")}
             rows={4}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -178,13 +174,10 @@ export function TaskModal({
             className="rounded-xl border border-[var(--tm-danger)] bg-[rgba(239,68,68,0.08)] p-3 text-sm"
             role="alert"
           >
-            <p className="font-semibold text-[var(--tm-danger)]">
-              Could not save
-            </p>
+            <p className="font-semibold text-[var(--tm-danger)]">Could not save</p>
             <p className="mt-1 text-[var(--tm-text)]">{error}</p>
             <p className="mt-1 text-[var(--tm-muted)]">
-              Try again. If you recently edited this task in another tab/device,
-              refresh first.
+              Try again. If you recently edited this task in another tab/device, refresh first.
             </p>
           </div>
         ) : null}
